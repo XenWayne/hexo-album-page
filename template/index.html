@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masonry Gallery</title>
+  <link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
+  <link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fancyapps/ui@4.0.31/dist/fancybox.css">
+  <style>
+    /*------------------------------
+Reset
+------------------------------*/
+    html {
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      background-color: #f0f1f1;
+      color: #343333;
+    }
+
+    *,
+    *:before,
+    *:after {
+      -webkit-box-sizing: inherit;
+      box-sizing: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    figure {
+      margin: 0;
+      padding: 0;
+      display: block;
+      position: relative;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /*------------------------------
+Crazy Grid
+------------------------------*/
+    .crazy-grid {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding-top: 40px;
+      /* 为了避免内容被固定的Tab遮挡 */
+    }
+
+    /* 组图同一竖排上下些许空隙 */
+    .crazy-grid__box figure {
+      margin-top: 10px;
+    }
+
+    .crazy-grid__box {
+      float: left;
+      width: 50%;
+      padding: 60px;
+    }
+
+    .crazy-grid__box:nth-child(3n+1) {
+      padding-top: 180px;
+    }
+
+    .crazy-grid__box:nth-child(3n+3) {
+      padding-left: 120px;
+    }
+
+    .crazy-grid__box:nth-child(3n+4) {
+      padding-right: 120px;
+    }
+
+    .crazy-grid__box:nth-child(4n+5) {
+      padding-bottom: 120px;
+    }
+
+    @media (max-width: 1024px) {
+      .crazy-grid__box {
+        width: 100%;
+        padding: 30px;
+      }
+
+      .crazy-grid__box:nth-child(3n+1) {
+        padding-top: 30px;
+      }
+
+      .crazy-grid__box:nth-child(3n+3) {
+        padding-left: 60px;
+      }
+
+      .crazy-grid__box:nth-child(3n+4) {
+        padding-right: 60px;
+      }
+
+      .crazy-grid__box:nth-child(4n+5) {
+        padding-bottom: 30px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .crazy-grid__box {
+        width: 100%;
+        padding: 15px !important;
+      }
+
+      .crazy-grid__box:nth-child(3n+1),
+      .crazy-grid__box:nth-child(3n+3),
+      .crazy-grid__box:nth-child(3n+4),
+      .crazy-grid__box:nth-child(4n+5) {
+        padding: 15px !important;
+      }
+    }
+
+    .crazy-grid__box img {
+      -webkit-box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.3);
+    }
+
+    .crazy-grid__box .title {
+      margin-top: 20px;
+    }
+
+    /*------------------------------
+Bootstrap Custom
+------------------------------*/
+    .fixed-tabs {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      background-color: (255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      transition: background 0.3s ease, backdrop-filter 0.3s ease, color 0.3s ease;
+    }
+
+    .fixed-tabs .nav-link {
+      color: #b0b0b0
+    }
+
+    body {
+      background-color: transparent !important;
+    }
+
+    /*------------------------------
+Category Text
+------------------------------*/
+    .category-text {
+      color: #888;
+      font-size: 0.9em;
+      margin-top: 0;
+      padding: 0px 7dvw;
+    }
+
+    .category-text a {
+      color: #000;
+    }
+
+    .category-text a:hover {
+      color: #007bff;
+    }
+
+    /*------------------------------
+Loading Blur-up
+------------------------------*/
+    .blur-up {
+      -webkit-filter: blur(10px);
+      filter: blur(10px);
+      transition: filter 800ms, -webkit-filter 800ms;
+    }
+
+    .blur-up.lazyloaded {
+      -webkit-filter: blur(0);
+      filter: blur(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="fixed-tabs">
+    <div class="container-fluid">
+      <ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="category1-tab" data-bs-toggle="tab" href="#category1" role="tab"
+            aria-controls="category1" aria-selected="true">Category 1</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="category2-tab" data-bs-toggle="tab" href="#category2" role="tab"
+            aria-controls="category2" aria-selected="false">Category 2</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="category3-tab" data-bs-toggle="tab" href="#category3" role="tab"
+            aria-controls="category3" aria-selected="false">Category 3</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- !MAIN START -->
+  <div class="container-fluid mt-5">
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active" id="category1" role="tabpanel" aria-labelledby="category1-tab">
+
+
+
+        <div class="crazy-grid">
+
+          <!--Category 1 text-->
+          <div class="crazy-grid__box category-text">
+            <p>Repository: <a href="https://github.com/XenWayne/masonry-gallery-page">XenWayne/masonry-gallery-page</a> | For demo only</p>
+            <p>这是一个简单的测试页面，用于展示Masonry瀑布流布局的效果。页面中的图片均为示例图片，来源于网络。</p>
+
+          </div>
+
+          <!-- Category 1 内容 -->
+          <div class="crazy-grid__box">
+            <a href="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp" data-fancybox="category1">
+              <figure>
+                <img data-src="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp"
+                  class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">
+                <p><b>Penthouse</b> | up the sky a City Life</p>
+                <p>段落测试</p>
+              </span>
+            </div>
+
+          </div>
+          <!-- 其他内容 -->
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="category2" role="tabpanel" aria-labelledby="category2-tab">
+        <div class="crazy-grid">
+
+          <!--Category 2 text-->
+          <div class="crazy-grid__box category-text">
+            <h2> Category 2 </h2>
+            This is a easy test | <a href="https://www.baidu.com">@Test</a>
+          </div>
+          
+          <!-- Category 2 内容 -->
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc"></span> <!--无字demo-->
+            </div>
+          </div>
+
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/01/28/1Kd1PK.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/01/28/1Kd1PK.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2019/12/28/leCoa8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2019/12/28/leCoa8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <!-- 其他内容 -->
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="category3" role="tabpanel" aria-labelledby="category3-tab">
+
+
+        <div class="crazy-grid">
+
+          <!--Category 3 text-->
+          <div class="crazy-grid__box category-text">
+            <h2> Category 3 </h2>
+            我是文字啊啦啦啦啦啦嘿嘿嘿嘿额和黑恶黑Lorem ipsum dolor, sit amet consectetur adipisicing elit. Magni deserunt optio quam
+            voluptatibus cum quasi, amet iste beatae reprehenderit odio, delectus est tempore. Beat撒旦234法发</br>的萨45芬给e
+            dignissimos assumenda laboriosam explicabo asperiores.
+            我是超链接啊哈哈<a href="https://www.baidu.com">呜呼呜呼</a>啊手动阀手动阀
+          </div>
+
+          <!-- Category 3 内容 -->
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category3">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <a href="https://s21.ax1x.com/2019/12/28/leCoa8.jpg" data-fancybox="category3">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2019/12/28/leCoa8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <a href="https://s21.ax1x.com/2020/02/08/1RsBEd.jpg" data-fancybox="category3">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsBEd.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <a href="https://s21.ax1x.com/2019/12/22/QxRZaF.jpg" data-fancybox="category3">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2019/12/22/QxRZaF.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Lovely flat in Paris</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category3">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="city">Paris</span>
+              <span class="desc">Lovely flat in Paris</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/03/06/3LobCj.jpg" data-fancybox="category3">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/03/06/3LobCj.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Lovely flat in Paris</span>
+            </div>
+          </div>
+          <!-- 其他内容 -->
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" data-fancybox="category2">
+              <figure>
+                <img data-src="https://s21.ax1x.com/2020/02/08/1RsSc8.jpg" class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">Beautiful apartment in Rome</span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp" data-fancybox="category1">
+              <figure>
+                <img data-src="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp"
+                  class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">
+                <p><b>Penthouse</b> | up the sky a City Life</p>
+                <p>段落测试</p>
+              </span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp" data-fancybox="category1">
+              <figure>
+                <img data-src="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp"
+                  class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">
+                <p><b>Penthouse</b> | up the sky a City Life</p>
+                <p>段落测试</p>
+              </span>
+            </div>
+          </div>
+          <div class="crazy-grid__box">
+            <a href="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp" data-fancybox="category1">
+              <figure>
+                <img data-src="https://gcore.jsdelivr.net/gh/XenWayne/sitefile/img/header_gray.webp"
+                  class="lazyload img-fluid blur-up">
+              </figure>
+            </a>
+            <div class="title">
+              <span class="desc">
+                <p><b>Penthouse</b> | up the sky a City Life</p>
+                <p>段落测试</p>
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- !MAIN END-->
+
+  <script src="https://gcore.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script src='https://gcore.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js'></script>
+  <script src="https://gcore.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://gcore.jsdelivr.net/npm/@fancyapps/ui@4.0.31/dist/fancybox.umd.js"></script>
+  <script>
+    // 监听DOM加载完成事件
+    document.addEventListener('DOMContentLoaded', function () {
+      // 初始化Masonry
+      document.querySelectorAll('.tab-pane').forEach(function (pane) {
+        var grid = pane.querySelector('.crazy-grid');
+        var msnry = new Masonry(grid, {
+          itemSelector: '.crazy-grid__box',
+          percentPosition: true
+        });
+
+        // 慢网场景优化，超过一定时间后触发一次layout
+        var timeoutDOM = setTimeout(function () {
+          msnry.layout();
+        }, 5000);
+
+        // 监听懒加载图片加载完成事件
+        grid.addEventListener('lazyloaded', function () {
+          clearTimeout(timeoutDOM); // 清除定时器
+          msnry.layout();
+        });
+
+        // 监听切换Tab事件
+        document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function (tab) {
+          tab.addEventListener('shown.bs.tab', function (e) {
+            var target = document.querySelector(e.target.getAttribute("href"));
+            var grid = target.querySelector('.crazy-grid');
+            var msnry = new Masonry(grid, {
+              itemSelector: '.crazy-grid__box',
+              percentPosition: true
+            });
+
+            // 慢网场景优化，超过一定时间后触发一次layout
+            var timeoutTabSwitch = setTimeout(function () {
+              msnry.layout();
+            }, 5000);
+
+            // 监听懒加载图片加载完成事件
+            grid.addEventListener('lazyloaded', function () {
+              clearTimeout(timeoutTabSwitch); // 清除定时器
+              msnry.layout();
+            });
+
+            // 更新URL中的hash
+            history.replaceState(null, null, e.target.getAttribute("href"));
+          });
+        });
+
+        // 检查URL中的锚点并激活相应的Tab
+        var hash = window.location.hash;
+        if (hash) {
+          var tab = document.querySelector('a[href="' + hash + '"]');
+          if (tab) {
+            var tabInstance = new bootstrap.Tab(tab);
+            tabInstance.show();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "hexo-album-page",
+  "version": "1.0.0",
+  "description": "Create a standalone album page",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hexo",
+    "album",
+    "page"
+  ],
+  "author": "Xenwayne Wu <xenwayne@mevisual.top> (https://xenwayne.top)",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^3.1.10"
+  }
+}
