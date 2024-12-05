@@ -243,6 +243,14 @@ Loading Blur-up
     // 监听DOM加载完成事件
     document.addEventListener('DOMContentLoaded', function () {
 
+      // 初始化 Fancybox
+      Fancybox.bind("[data-fancybox]", {
+        Toolbar: false,
+        smallBtn: true,
+        buttons: [],
+        Thumbs: false,
+      });
+
       document.querySelectorAll('.tab-pane').forEach(function (pane) {
         var grid = pane.querySelector('.crazy-grid');
 
@@ -268,10 +276,9 @@ Loading Blur-up
           tab.addEventListener('shown.bs.tab', function (e) {
             var target = document.querySelector(e.target.getAttribute("href"));
             var grid = target.querySelector('.crazy-grid');
-            var msnry = new Masonry(grid, {
-              itemSelector: '.crazy-grid__box',
-              percentPosition: true
-            });
+
+            //触发Masonry布局
+            msnry.layout();
 
             // 慢网场景优化，超过一定时间后触发一次layout
             var timeoutTabSwitch = setTimeout(function () {
