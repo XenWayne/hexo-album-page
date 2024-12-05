@@ -12,8 +12,13 @@
     "page"
   ],
   "author": "Xenwayne Wu <xenwayne@mevisual.top> (https://xenwayne.top)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XenWayne/hexo-album-page.git"
+  },
   "license": "MIT",
   "dependencies": {
-    "ejs": "^3.1.10"
+    "ejs": "^3.1.10",
+    "js-yaml": "^4.1.0"
   }
 }

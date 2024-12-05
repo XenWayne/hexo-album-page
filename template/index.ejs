@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <%= site_title %>
+  </title>
+  <link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
+  <link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/@fancyapps/ui@4.0.31/dist/fancybox.css">
+  <style>
+    /*------------------------------
+Reset
+------------------------------*/
+    html {
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      background-color: #f0f1f1;
+      color: #343333;
+    }
+
+    *,
+    *:before,
+    *:after {
+      -webkit-box-sizing: inherit;
+      box-sizing: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    figure {
+      margin: 0;
+      padding: 0;
+      display: block;
+      position: relative;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /*------------------------------
+Crazy Grid
+------------------------------*/
+    .crazy-grid {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding-top: 40px;
+      /* 为了避免内容被固定的Tab遮挡 */
+    }
+
+    /* 组图同一竖排上下些许空隙 */
+    .crazy-grid__box figure {
+      margin-top: 10px;
+    }
+
+    .crazy-grid__box {
+      float: left;
+      width: 50%;
+      padding: 60px;
+    }
+
+    .crazy-grid__box:nth-child(3n+1) {
+      padding-top: 180px;
+    }
+
+    .crazy-grid__box:nth-child(3n+3) {
+      padding-left: 120px;
+    }
+
+    .crazy-grid__box:nth-child(3n+4) {
+      padding-right: 120px;
+    }
+
+    .crazy-grid__box:nth-child(4n+5) {
+      padding-bottom: 120px;
+    }
+
+    @media (max-width: 1024px) {
+      .crazy-grid__box {
+        width: 100%;
+        padding: 30px;
+      }
+
+      .crazy-grid__box:nth-child(3n+1) {
+        padding-top: 30px;
+      }
+
+      .crazy-grid__box:nth-child(3n+3) {
+        padding-left: 60px;
+      }
+
+      .crazy-grid__box:nth-child(3n+4) {
+        padding-right: 60px;
+      }
+
+      .crazy-grid__box:nth-child(4n+5) {
+        padding-bottom: 30px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .crazy-grid__box {
+        width: 100%;
+        padding: 15px !important;
+      }
+
+      .crazy-grid__box:nth-child(3n+1),
+      .crazy-grid__box:nth-child(3n+3),
+      .crazy-grid__box:nth-child(3n+4),
+      .crazy-grid__box:nth-child(4n+5) {
+        padding: 15px !important;
+      }
+    }
+
+    .crazy-grid__box img {
+      -webkit-box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.3);
+    }
+
+    .crazy-grid__box .title {
+      margin-top: 20px;
+    }
+
+    /*------------------------------
+Bootstrap Custom
+------------------------------*/
+    .fixed-tabs {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      background-color: (255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      transition: background 0.3s ease, backdrop-filter 0.3s ease, color 0.3s ease;
+    }
+
+    .fixed-tabs .nav-link {
+      color: #b0b0b0
+    }
+
+    body {
+      background-color: transparent !important;
+    }
+
+    /*------------------------------
+Category Text
+------------------------------*/
+    .category-text {
+      color: #888;
+      font-size: 0.9em;
+      margin-top: 0;
+      padding: 0px 7dvw;
+    }
+
+    .category-text a {
+      color: #000;
+    }
+
+    .category-text a:hover {
+      color: #007bff;
+    }
+
+    /*------------------------------
+Loading Blur-up
+------------------------------*/
+    .blur-up {
+      -webkit-filter: blur(10px);
+      filter: blur(10px);
+      transition: filter 800ms, -webkit-filter 800ms;
+    }
+
+    .blur-up.lazyloaded {
+      -webkit-filter: blur(0);
+      filter: blur(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="fixed-tabs">
+    <div class="container-fluid">
+      <ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
+        <% categories.forEach(function(category, index) { %>
+          <li class="nav-item">
+            <a class="nav-link <%= index === 0 ? 'active' : '' %>" id="<%= category.id %>-tab" data-bs-toggle="tab"
+              href="#<%= category.id %>" role="tab" aria-controls="<%= category.id %>"
+              aria-selected="<%= index === 0 ? 'true' : 'false' %>">
+              <%= category.name %>
+            </a>
+          </li>
+          <% }); %>
+      </ul>
+    </div>
+  </div>
+
+  <!-- !MAIN START -->
+  <div class="container-fluid mt-5">
+    <div class="tab-content" id="myTabContent">
+      <% categories.forEach(function(category, index) { %>
+        <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" id="<%= category.id %>" role="tabpanel"
+          aria-labelledby="<%= category.id %>-tab">
+          <div class="crazy-grid">
+            <div class="crazy-grid__box category-text">
+              <p>
+                <%- category.description %>
+              </p>
+            </div>
+            <% category.images.forEach(function(image) { %>
+              <div class="crazy-grid__box">
+                <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box">
+                  <figure>
+                    <img data-src="<%= image.url %>" class="lazyload img-fluid blur-up">
+                  </figure>
+                </a>
+                <div class="title">
+                  <span class="desc">
+                    <%- image.description %>
+                  </span>
+                </div>
+              </div>
+              <% }); %>
+          </div>
+        </div>
+        <% }); %>
+    </div>
+  </div>
+  <!-- !MAIN END-->
+
+  <script src="https://gcore.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script src='https://gcore.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js'></script>
+  <script src="https://gcore.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://gcore.jsdelivr.net/npm/@fancyapps/ui@4.0.31/dist/fancybox.umd.js"></script>
+  <script>
+    // 监听DOM加载完成事件
+    document.addEventListener('DOMContentLoaded', function () {
+
+      document.querySelectorAll('.tab-pane').forEach(function (pane) {
+        var grid = pane.querySelector('.crazy-grid');
+
+        // 初始化Masonry
+        var msnry = new Masonry(grid, {
+          itemSelector: '.crazy-grid__box',
+          percentPosition: true
+        });
+
+        // 慢网场景优化，超过一定时间后触发一次layout
+        var timeoutDOM = setTimeout(function () {
+          msnry.layout();
+        }, 5000);
+
+        // 监听懒加载图片加载完成事件
+        grid.addEventListener('lazyloaded', function () {
+          clearTimeout(timeoutDOM); // 清除定时器
+          msnry.layout();
+        });
+
+        // 监听切换Tab事件
+        document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function (tab) {
+          tab.addEventListener('shown.bs.tab', function (e) {
+            var target = document.querySelector(e.target.getAttribute("href"));
+            var grid = target.querySelector('.crazy-grid');
+            var msnry = new Masonry(grid, {
+              itemSelector: '.crazy-grid__box',
+              percentPosition: true
+            });
+
+            // 慢网场景优化，超过一定时间后触发一次layout
+            var timeoutTabSwitch = setTimeout(function () {
+              msnry.layout();
+            }, 5000);
+
+            // 监听懒加载图片加载完成事件
+            grid.addEventListener('lazyloaded', function () {
+              clearTimeout(timeoutTabSwitch); // 清除定时器
+              msnry.layout();
+            });
+
+            // 更新URL中的hash
+            history.replaceState(null, null, e.target.getAttribute("href"));
+          });
+        });
+
+        // 检查URL中的锚点并激活相应的Tab
+        var hash = window.location.hash;
+        if (hash) {
+          var tab = document.querySelector('a[href="' + hash + '"]');
+          if (tab) {
+            var tabInstance = new bootstrap.Tab(tab);
+            tabInstance.show();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

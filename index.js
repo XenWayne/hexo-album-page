@@ -1,23 +1,28 @@
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
+const yaml = require('js-yaml');
 
 hexo.extend.generator.register('album', function(locals) {
   const config = hexo.config.album || {};
   
-  const outputPath = path.join(hexo.public_dir, config.output_path || 'album/index.html'); // 相册页面路径
-  const baseUrl = config.base_url || '/'; // 图片基础 URL
+  // 检查插件是否启用
+  if (!config.enable) {
+    return;
+  }
 
-  
+  const outputPath = path.join(config.output_path || 'album/index.html'); // 相册页面路径
+  const site_title = config.site_title || 'Album'; // 页面标题
+
   // 读取相册数据
-  const albumData = hexo.locals.get('data').album || [];
+  const albumDataPath = path.join(hexo.source_dir, '_data', 'album.yml');
+  const albumData = yaml.load(fs.readFileSync(albumDataPath, 'utf8')).categories || [];
 
   // 渲染 EJS 模板
-  const templatePath = path.join(__dirname, 'layout', 'index.ejs');
+  const templatePath = path.join(__dirname, 'template', 'index.ejs');
   const templateData = {
-    albumData: albumData,
-    resUrl: resUrl,
-    baseUrl: baseUrl
+    categories: albumData,
+    site_title: site_title
   };
 
   return new Promise((resolve, reject) => {
@@ -28,14 +33,11 @@ hexo.extend.generator.register('album', function(locals) {
         return;
       }
 
-      // 将渲染后的 HTML 写入文件
-      fs.writeFileSync(outputPath, str);
-      console.log('hexo-album-page: Album page generated at', outputPath);
-
-      resolve({
+      // 返回生成的文件信息
+      resolve([{
         path: outputPath,
         data: str
-      });
+      }]);
     });
   });
 });
