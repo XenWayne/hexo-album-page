@@ -6,8 +6,8 @@ A hexo plugin to generate a standalone album page.
 
 Template design repo: [XenWayne/masonry-gallery-page](https://github.com/XenWayne/masonry-gallery-page)
 
-> Demo: [masonry-gallery-page](https://xenwayne.github.io/masonry-gallery-page/)
-> design-repo: [XenWayne/masonry-gallery-page](https://github.com/XenWayne/masonry-gallery-page)
+> Demo: [masonry-gallery-page](https://xenwayne.github.io/masonry-gallery-page/) 
+
 
 The main masonry view is modified based on [Fabio Ottaviani](https://codepen.io/supah/pen/wpbPyM) 's codepen.
 
