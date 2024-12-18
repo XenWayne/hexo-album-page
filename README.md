@@ -31,6 +31,7 @@ npm install hexo-album-page --save
 album:
   enable: true # 是否启用相册插件
   site_title: "My Album" # 相册页面的标题
+  favicon: "" # 相册页面的站点图标
   output_path: album/index.html # 相册页面的渲染输出路径 
 ```
 
