@@ -183,6 +183,18 @@ Loading Blur-up
       -webkit-filter: blur(0);
       filter: blur(0);
     }
+    
+    /*------------------------------
+Lazy Load Placeholder
+------------------------------*/
+    .lazy-placeholder {
+      opacity: 0;
+      transition: opacity 300ms;
+    }
+    
+    .lazy-placeholder.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 
@@ -215,8 +227,9 @@ Loading Blur-up
                 <%- category.description %>
               </p>
             </div>
-            <% category.images.forEach(function(image) { %>
-              <div class="crazy-grid__box">
+            <% category.images.forEach(function(image, imgIndex) { %>
+              <div class="crazy-grid__box lazy-placeholder <%= imgIndex < 6 ? 'visible' : '' %>" data-category="<%= category.id %>" data-index="<%= imgIndex %>">
+                <% if (imgIndex < 6) { %>
                 <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box">
                   <figure>
                     <img data-src="<%= image.url %>" class="lazyload img-fluid blur-up">
@@ -227,6 +240,18 @@ Loading Blur-up
                     <%- image.description %>
                   </span>
                 </div>
+                <% } else { %>
+                <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box" style="display:none;">
+                  <figure>
+                    <img data-src="<%= image.url %>" class="lazyload img-fluid blur-up">
+                  </figure>
+                </a>
+                <div class="title" style="display:none;">
+                  <span class="desc">
+                    <%- image.description %>
+                  </span>
+                </div>
+                <% } %>
               </div>
               <% }); %>
           </div>
@@ -243,7 +268,10 @@ Loading Blur-up
   <script>
     // 监听DOM加载完成事件
     document.addEventListener('DOMContentLoaded', function () {
-
+      
+      // 记录每个分类已经加载的图片数量
+      var loadedImagesCount = {};
+      
       // 初始化 Fancybox
       Fancybox.bind("[data-fancybox]", {
         Toolbar: false,
@@ -254,6 +282,10 @@ Loading Blur-up
 
       document.querySelectorAll('.tab-pane').forEach(function (pane) {
         var grid = pane.querySelector('.crazy-grid');
+        var categoryId = pane.id;
+
+        // 初始化每个分类的已加载图片计数
+        loadedImagesCount[categoryId] = 6;
 
         // 初始化Masonry
         var msnry = new Masonry(grid, {
@@ -271,12 +303,20 @@ Loading Blur-up
           clearTimeout(timeoutDOM); // 清除定时器
           msnry.layout();
         });
+        
+        // 监听滚动事件，实现触底加载更多图片
+        window.addEventListener('scroll', function() {
+          if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
+            loadMoreImages(categoryId, msnry);
+          }
+        });
 
         // 监听切换Tab事件
         document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function (tab) {
           tab.addEventListener('shown.bs.tab', function (e) {
             var target = document.querySelector(e.target.getAttribute("href"));
             var grid = target.querySelector('.crazy-grid');
+            var categoryId = target.id;
 
             //触发Masonry布局
             msnry.layout();
@@ -294,6 +334,13 @@ Loading Blur-up
 
             // 更新URL中的hash
             history.replaceState(null, null, e.target.getAttribute("href"));
+            
+            // 为新标签页绑定滚动监听
+            window.addEventListener('scroll', function() {
+              if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
+                loadMoreImages(categoryId, msnry);
+              }
+            });
           });
         });
 
@@ -307,6 +354,40 @@ Loading Blur-up
           }
         }
       });
+      
+      // 加载更多图片的函数
+      function loadMoreImages(categoryId, msnry) {
+        var placeholders = document.querySelectorAll('.lazy-placeholder[data-category="' + categoryId + '"]');
+        var startIndex = loadedImagesCount[categoryId];
+        var endIndex = Math.min(startIndex + 6, placeholders.length);
+        
+        var hasNewImages = false;
+        
+        for (var i = startIndex; i < endIndex; i++) {
+          var placeholder = placeholders[i];
+          if (placeholder) {
+            placeholder.classList.add('visible');
+            
+            // 显示隐藏的图片和描述
+            var hiddenElements = placeholder.querySelectorAll('[style*="display:none"], [style*="display: none"]');
+            for (var j = 0; j < hiddenElements.length; j++) {
+              hiddenElements[j].style.display = '';
+            }
+            
+            hasNewImages = true;
+          }
+        }
+        
+        if (hasNewImages) {
+          loadedImagesCount[categoryId] = endIndex;
+          
+          // 触发新图片的懒加载
+          setTimeout(function() {
+            msnry.reloadItems();
+            msnry.layout();
+          }, 100);
+        }
+      }
     });
   </script>
 </body>
