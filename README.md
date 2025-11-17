@@ -86,6 +86,28 @@ categories:
       # 添加更多图片
 ```
 
+
+相册（组图）写法 — 支持把一组图当成单个条目显示，展开后会把组内图片插入到当前列表：
+
+```yaml
+  - id: albumtest
+    name: 我的相册
+    description: |
+      这是一个示例相册
+    images:
+      - type: album
+        description: 我的相册封面文字
+        images:
+          - url: https://example.com/album1.jpg
+            description: 第一张
+          - url: https://example.com/album2.jpg
+            description: 第二张
+          - url: https://example.com/album3.jpg
+            description: 第三张
+      - url: https://example.com/single.jpg
+        description: 普通单张图片
+```
+
 4. Use hexo command to generate as usual.
 
 

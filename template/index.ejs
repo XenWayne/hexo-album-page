@@ -359,7 +359,7 @@ Lazy Load Placeholder
             <% category.images.forEach(function(image, imgIndex) { %>
               <% if (image && image.type === 'album') { %>
                 <% var cover = (image.images && image.images.length) ? image.images[0].url : (image.url || ''); %>
-                <div class="crazy-grid__box lazy-placeholder album-box <%= imgIndex < 6 ? 'visible' : '' %>" data-category="<%= category.id %>" data-index="<%= imgIndex %>" data-album-index="<%= imgIndex %>" data-album-images='<%- JSON.stringify(image.images || []) %>' data-album-open="false">
+                <div class="crazy-grid__box lazy-placeholder album-box <%= imgIndex < 6 ? 'visible' : '' %>" <% if (imgIndex >= 6) { %>style="display:none;"<% } %> data-category="<%= category.id %>" data-index="<%= imgIndex %>" data-album-index="<%= imgIndex %>" data-album-images='<%- JSON.stringify(image.images || []) %>' data-album-open="false">
                   <% if (imgIndex < 6) { %>
                   <a href="<%= cover %>" class="album-toggle" data-fancybox="<%= category.id %>_box">
                     <figure>
@@ -411,7 +411,7 @@ Lazy Load Placeholder
                   <% } %>
                 </div>
               <% } else { %>
-                <div class="crazy-grid__box lazy-placeholder <%= imgIndex < 6 ? 'visible' : '' %>" data-category="<%= category.id %>" data-index="<%= imgIndex %>">
+                <div class="crazy-grid__box lazy-placeholder <%= imgIndex < 6 ? 'visible' : '' %>" <% if (imgIndex >= 6) { %>style="display:none;"<% } %> data-category="<%= category.id %>" data-index="<%= imgIndex %>">
                   <% if (imgIndex < 6) { %>
                   <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box">
                     <figure>
@@ -439,6 +439,8 @@ Lazy Load Placeholder
               <% } %>
             <% }); %>
           </div>
+          <!-- sentinel: 用于 IntersectionObserver 分批触发加载 -->
+          <div class="load-sentinel" data-category="<%= category.id %>" aria-hidden="true"></div>
         </div>
         <% }); %>
     </div>
@@ -468,8 +470,7 @@ Lazy Load Placeholder
         var grid = pane.querySelector('.crazy-grid');
         var categoryId = pane.id;
 
-        // 初始化每个分类的已加载图片计数
-        loadedImagesCount[categoryId] = 6;
+  // 每个分类的已加载图片计数将在 sentinel 初始化时计算（基于模板中 visible 类）
 
         // 初始化Masonry
         var msnry = new Masonry(grid, {
@@ -623,12 +624,34 @@ Lazy Load Placeholder
           });
         });
         
-        // 监听滚动事件，实现触底加载更多图片
-        window.addEventListener('scroll', function() {
-          if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
-            loadMoreImages(categoryId, msnry);
+        // 使用 IntersectionObserver 在网格底部的 sentinel 可见时分批加载（更准确，避免大片空白）
+        (function setupSentinelAndObserver() {
+          var sentinel = pane.querySelector('.load-sentinel[data-category="' + categoryId + '"]');
+          var placeholders = grid.querySelectorAll('.lazy-placeholder');
+
+          // 计算初始已加载数量（模板中默认前 N 项可见）
+          var initialLoaded = 0;
+          placeholders.forEach(function(p) { if (p.classList.contains('visible')) initialLoaded++; });
+          loadedImagesCount[categoryId] = Math.min(initialLoaded || 0, placeholders.length);
+
+          var batchSize = 12; // 每次加载的批次大小，可按需调整
+
+          // 创建 observer
+          var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                loadMoreImages(categoryId, msnry, observer, entry.target, batchSize);
+              }
+            });
+          }, { root: null, rootMargin: '600px 0px', threshold: 0.01 });
+
+          // 如果还有未加载的占位，则观察 sentinel；否则隐藏 sentinel
+          if (loadedImagesCount[categoryId] < placeholders.length) {
+            try { observer.observe(sentinel); } catch (e) { /* ignore */ }
+          } else if (sentinel) {
+            sentinel.style.display = 'none';
           }
-        });
+        })();
 
         // 监听切换Tab事件
         document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function (tab) {
@@ -654,12 +677,7 @@ Lazy Load Placeholder
             // 更新URL中的hash
             history.replaceState(null, null, e.target.getAttribute("href"));
             
-            // 为新标签页绑定滚动监听
-            window.addEventListener('scroll', function() {
-              if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
-                loadMoreImages(categoryId, msnry);
-              }
-            });
+            // 切换 Tab 时触发 Masonry 布局并刷新（不再使用全局 scroll 绑定）
           });
         });
 
@@ -674,37 +692,52 @@ Lazy Load Placeholder
         }
       });
       
-      // 加载更多图片的函数
-      function loadMoreImages(categoryId, msnry) {
+      // 加载更多图片的函数（按批次加载）
+      // 参数: categoryId, msnry, observer(optional), sentinel(optional), batchSize(optional)
+      function loadMoreImages(categoryId, msnry, observer, sentinel, batchSize) {
+        batchSize = batchSize || 12;
         var placeholders = document.querySelectorAll('.lazy-placeholder[data-category="' + categoryId + '"]');
-        var startIndex = loadedImagesCount[categoryId];
-        var endIndex = Math.min(startIndex + 6, placeholders.length);
-        
+        var startIndex = loadedImagesCount[categoryId] || 0;
+        var endIndex = Math.min(startIndex + batchSize, placeholders.length);
+
         var hasNewImages = false;
-        
+
         for (var i = startIndex; i < endIndex; i++) {
           var placeholder = placeholders[i];
           if (placeholder) {
+            // 如果外层被设置为 display:none（服务端模板会在初始不可见项设置），先恢复外层显示
+            if (placeholder.style && placeholder.style.display === 'none') {
+              placeholder.style.display = '';
+            }
             placeholder.classList.add('visible');
-            
-            // 显示隐藏的图片和描述
+
+            // 显示隐藏的图片和描述（原模板将内部元素设为 display:none）
             var hiddenElements = placeholder.querySelectorAll('[style*="display:none"], [style*="display: none"]');
             for (var j = 0; j < hiddenElements.length; j++) {
               hiddenElements[j].style.display = '';
             }
-            
+
             hasNewImages = true;
           }
         }
-        
+
         if (hasNewImages) {
           loadedImagesCount[categoryId] = endIndex;
-          
-          // 触发新图片的懒加载
+
+          // 触发新图片的懒加载并重新布局
           setTimeout(function() {
-            msnry.reloadItems();
-            msnry.layout();
-          }, 100);
+            try { msnry.reloadItems(); } catch (e) {}
+            try { msnry.layout(); } catch (e) {}
+          }, 80);
+        }
+
+        // 如果已加载完全部，占位节点不再需要观察并隐藏 sentinel
+        if (loadedImagesCount[categoryId] >= placeholders.length) {
+          if (observer && sentinel) {
+            try { observer.unobserve(sentinel); } catch (e) {}
+          } else if (sentinel) {
+            sentinel.style.display = 'none';
+          }
         }
       }
     });
