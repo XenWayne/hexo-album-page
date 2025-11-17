@@ -122,8 +122,15 @@ Crazy Grid
     }
 
     .crazy-grid__box img {
-      -webkit-box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.3);
-      box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.3);
+      -webkit-box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.5);
+      transition: transform 360ms cubic-bezier(.2,.8,.2,1), box-shadow 360ms;
+      will-change: transform;
+    }
+
+    /* 为所有图片添加 hover 缩放效果（在 figure hover 时触发） */
+    .crazy-grid__box figure:hover img {
+      transform: scale(1.04) translateY(-6px);
     }
 
     .crazy-grid__box .title {
@@ -195,6 +202,117 @@ Lazy Load Placeholder
     .lazy-placeholder.visible {
       opacity: 1;
     }
+    
+    /* Album hover & action styles */
+    .album-box figure {
+      position: relative;
+      overflow: hidden;
+      border-radius: 0; /* 不要对相册图片额外做圆角 */
+      /* 把阴影放在 figure 上，这样不会被裁切，也与普通图片一致 */
+      -webkit-box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .album-box figure img {
+      transition: transform 360ms cubic-bezier(.2,.8,.2,1), box-shadow 360ms;
+      will-change: transform;
+      display: block;
+      position: relative;
+      z-index: 0;
+      /* 保持与其它图片一致的阴影 */
+      -webkit-box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 20px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 黑色覆盖层，用于 hover 时加深风格 */
+    .album-box figure::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; top: 0; bottom: 0;
+      background: rgba(0,0,0,0);
+      transition: background 260ms ease;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* hover 居中显示的相册徽章（在黑色遮罩上方） */
+    .album-box figure .album-hover-badge {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -40%);
+      background: none; /* 不要边框/背景 */
+      color: #fff;
+      padding: 0 6px;
+      border-radius: 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3; /* 在遮罩之上 */
+      transition: transform 220ms ease, opacity 220ms ease;
+      font-size: 0.98rem;
+      white-space: nowrap;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+
+    .album-box figure:hover .album-hover-badge {
+      transform: translate(-50%, -50%);
+      opacity: 1;
+    }
+
+    /* 仅在图片（figure） hover 时触发效果，而不是整个 album-box 区域 */
+    .album-box figure:hover img {
+      transform: scale(1.04) translateY(-6px);
+      /* 给图片放大时，阴影由 figure 的 box-shadow 变化体现 */
+    }
+
+    .album-box figure:hover::after {
+      background: rgba(0,0,0,0.32);
+    }
+
+    .album-box figure figcaption {
+      transition: opacity 260ms ease, transform 260ms ease;
+      opacity: 0.95;
+      transform: translateY(0);
+      pointer-events: none;
+      z-index: 2; /* 显示在覆盖层之上 */
+      border-radius: 0; /* 不额外圆角 */
+    }
+
+    /* 描述后的相册信息样式（小字） */
+    .album-count-text {
+      font-size: 0.85rem;
+      color: #666;
+      vertical-align: middle;
+    }
+
+    /* Action button (arrow) */
+    .album-action {
+      background: transparent !important;
+      border: none !important; /* 不要边框 */
+      padding: 6px !important;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      color: inherit;
+    }
+
+    .album-action .arrow {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+      transition: transform 260ms ease;
+      transform-origin: center;
+    }
+
+    /* Rotate arrow when album is open */
+    .album-box[data-album-open="true"] .album-action .arrow {
+      transform: rotate(180deg);
+    }
   </style>
 </head>
 
@@ -228,32 +346,75 @@ Lazy Load Placeholder
               </p>
             </div>
             <% category.images.forEach(function(image, imgIndex) { %>
-              <div class="crazy-grid__box lazy-placeholder <%= imgIndex < 6 ? 'visible' : '' %>" data-category="<%= category.id %>" data-index="<%= imgIndex %>">
-                <% if (imgIndex < 6) { %>
-                <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box">
-                  <figure>
-                    <img data-src="<%= image.url %>" class="lazyload img-fluid blur-up">
-                  </figure>
-                </a>
-                <div class="title">
-                  <span class="desc">
-                    <%- image.description %>
-                  </span>
+              <% if (image && image.type === 'album') { %>
+                <% var cover = (image.images && image.images.length) ? image.images[0].url : (image.url || ''); %>
+                <div class="crazy-grid__box lazy-placeholder album-box <%= imgIndex < 6 ? 'visible' : '' %>" data-category="<%= category.id %>" data-index="<%= imgIndex %>" data-album-index="<%= imgIndex %>" data-album-images='<%- JSON.stringify(image.images || []) %>' data-album-open="false">
+                  <% if (imgIndex < 6) { %>
+                  <a href="<%= cover %>" class="album-toggle" data-fancybox="<%= category.id %>_box">
+                    <figure>
+                      <img data-src="<%= cover %>" class="lazyload img-fluid blur-up">
+                      <div class="album-hover-badge">组图 · <span class="album-count"><%= (image.images || []).length %></span> 张</div>
+                    </figure>
+                  </a>
+                  <div class="title">
+                    <span class="desc">
+                      <%- image.description %>
+                    </span>
+                    <small class="album-count-text ms-2 text-muted">组图 · <%= (image.images || []).length %> 张</small>
+                    <button type="button" class="ms-2 album-action" style="vertical-align:middle;" aria-pressed="false" aria-label="展开/收起相册">
+                      <svg class="arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                  <% } else { %>
+                  <a href="<%= cover %>" class="album-toggle" data-fancybox="<%= category.id %>_box" style="display:none;">
+                    <figure>
+                        <img data-src="<%= cover %>" class="lazyload img-fluid blur-up">
+                        <div class="album-hover-badge">组图 · <span class="album-count"><%= (image.images || []).length %></span> 张</div>
+                      </figure>
+                  </a>
+                  <div class="title" style="display:none;">
+                    <span class="desc">
+                      <%- image.description %>
+                    </span>
+                    <small class="album-count-text ms-2 text-muted" style="display:none;">组图 · <%= (image.images || []).length %> 张</small>
+                    <button type="button" class="ms-2 album-action" style="vertical-align:middle;display:none;" aria-pressed="false" aria-label="展开/收起相册">
+                      <svg class="arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                  <% } %>
                 </div>
-                <% } else { %>
-                <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box" style="display:none;">
-                  <figure>
-                    <img data-src="<%= image.url %>" class="lazyload img-fluid blur-up">
-                  </figure>
-                </a>
-                <div class="title" style="display:none;">
-                  <span class="desc">
-                    <%- image.description %>
-                  </span>
+              <% } else { %>
+                <div class="crazy-grid__box lazy-placeholder <%= imgIndex < 6 ? 'visible' : '' %>" data-category="<%= category.id %>" data-index="<%= imgIndex %>">
+                  <% if (imgIndex < 6) { %>
+                  <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box">
+                    <figure>
+                      <img data-src="<%= image.url %>" class="lazyload img-fluid blur-up">
+                    </figure>
+                  </a>
+                  <div class="title">
+                    <span class="desc">
+                      <%- image.description %>
+                    </span>
+                  </div>
+                  <% } else { %>
+                  <a href="<%= image.url %>" data-fancybox="<%= category.id %>_box" style="display:none;">
+                    <figure>
+                      <img data-src="<%= image.url %>" class="lazyload img-fluid blur-up">
+                    </figure>
+                  </a>
+                  <div class="title" style="display:none;">
+                    <span class="desc">
+                      <%- image.description %>
+                    </span>
+                  </div>
+                  <% } %>
                 </div>
-                <% } %>
-              </div>
-              <% }); %>
+              <% } %>
+            <% }); %>
           </div>
         </div>
         <% }); %>
@@ -302,6 +463,141 @@ Lazy Load Placeholder
         grid.addEventListener('lazyloaded', function () {
           clearTimeout(timeoutDOM); // 清除定时器
           msnry.layout();
+        });
+        
+        // 相册展开/收起处理：点击相册时动态插入/移除该相册的图片
+        function toggleAlbum(albumBox) {
+          if (!albumBox) return;
+          if (albumBox.getAttribute('data-album-open') === 'true') {
+            collapseAlbum(albumBox);
+          } else {
+            expandAlbum(albumBox);
+          }
+        }
+
+        function expandAlbum(albumBox) {
+          var raw = albumBox.getAttribute('data-album-images') || '[]';
+          var images = [];
+          try { images = JSON.parse(raw); } catch (e) { images = []; }
+          if (!images.length) return;
+
+          var albumIndex = albumBox.getAttribute('data-album-index');
+          var inserted = [];
+
+          // 使用 DocumentFragment 按原始顺序一次性插入，避免反序
+          var frag = document.createDocumentFragment();
+          images.forEach(function (img, idx) {
+            var box = document.createElement('div');
+            box.className = 'crazy-grid__box lazy-placeholder visible inserted-from-album';
+            box.setAttribute('data-category', categoryId);
+            box.setAttribute('data-inserted-from', albumIndex);
+
+            var a = document.createElement('a');
+            a.href = img.url;
+            a.setAttribute('data-fancybox', categoryId + '_box');
+
+            var figure = document.createElement('figure');
+            var im = document.createElement('img');
+            im.setAttribute('data-src', img.url);
+            im.className = 'lazyload img-fluid blur-up';
+            figure.appendChild(im);
+            a.appendChild(figure);
+
+            var title = document.createElement('div');
+            title.className = 'title';
+            var span = document.createElement('span');
+            span.className = 'desc';
+            span.innerHTML = img.description || '';
+            title.appendChild(span);
+
+            box.appendChild(a);
+            box.appendChild(title);
+
+            frag.appendChild(box);
+            inserted.push(box);
+          });
+
+          // 在相册元素之后一次性插入所有图片
+          albumBox.parentNode.insertBefore(frag, albumBox.nextSibling);
+
+          // 让 Masonry 接管新元素，然后触发重布局
+          msnry.appended(inserted);
+          // reloadItems + layout 更保险，以确保内部索引更新
+          msnry.reloadItems();
+          msnry.layout();
+
+          // 重新绑定 Fancybox（安全的重复绑定）
+          Fancybox.bind('[data-fancybox]', {
+            Toolbar: false,
+            smallBtn: true,
+            buttons: [],
+            Thumbs: false,
+          });
+
+          // 去抖的 layout 调用（在图片 load 时触发，避免多次 layout）
+          var relayoutTimer = null;
+          function scheduleRelayout() {
+            if (relayoutTimer) clearTimeout(relayoutTimer);
+            relayoutTimer = setTimeout(function() {
+              try { msnry.reloadItems(); } catch (e) {}
+              try { msnry.layout(); } catch (e) {}
+            }, 80);
+          }
+
+          if (window.lazySizes) {
+            // 确保新增图片带有 lazyload 类（已设置），并在真实图片 load 时触发布局
+            inserted.forEach(function(el) {
+              var imgs = el.querySelectorAll('img');
+              imgs.forEach(function(img) {
+                // 绑定 load 以防占位图替换后位置变化
+                img.addEventListener('load', scheduleRelayout);
+                // 如果 image 已经缓存并完成加载，手动触发一次
+                if (img.complete) scheduleRelayout();
+              });
+            });
+          } else {
+            // 未加载 lazySizes 时也确保布局在短延迟后生效
+            setTimeout(function() { msnry.reloadItems(); msnry.layout(); }, 120);
+          }
+
+          albumBox.setAttribute('data-album-open', 'true');
+          var btn = albumBox.querySelector('.album-action'); if (btn) btn.setAttribute('aria-pressed', 'true');
+        }
+
+        function collapseAlbum(albumBox) {
+          var albumIndex = albumBox.getAttribute('data-album-index');
+          var selector = '.inserted-from-album[data-inserted-from="' + albumIndex + '"]';
+          var inserted = Array.prototype.slice.call(grid.querySelectorAll(selector));
+          if (!inserted.length) {
+            albumBox.setAttribute('data-album-open', 'false');
+            var btn = albumBox.querySelector('.album-action'); if (btn) btn.textContent = '展开';
+            return;
+          }
+
+          // 先从 Masonry 中移除，再从 DOM 删除
+          try { msnry.remove(inserted); } catch (e) {}
+          inserted.forEach(function (el) { el.parentNode && el.parentNode.removeChild(el); });
+          // reloadItems + layout to ensure indices update
+          try { msnry.reloadItems(); } catch (e) {}
+          try { msnry.layout(); } catch (e) {}
+
+          albumBox.setAttribute('data-album-open', 'false');
+          var btn = albumBox.querySelector('.album-action'); if (btn) btn.setAttribute('aria-pressed', 'false');
+        }
+
+        // 绑定相册按钮
+        grid.querySelectorAll('.album-box').forEach(function (albumBox) {
+          var btn = albumBox.querySelector('.album-action');
+          if (btn) btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            toggleAlbum(albumBox);
+          });
+          var toggleLink = albumBox.querySelector('.album-toggle');
+          if (toggleLink) toggleLink.addEventListener('click', function (e) {
+            // 阻止直接打开 Fancybox，改为展开相册（如果希望同时可直接打开封面则可改）
+            e.preventDefault();
+            toggleAlbum(albumBox);
+          });
         });
         
         // 监听滚动事件，实现触底加载更多图片
