@@ -259,6 +259,17 @@ Lazy Load Placeholder
       opacity: 1;
     }
 
+    /* 相册图标放到描述文本前的小图标样式 */
+    .album-count-text .album-icon {
+      width: 16px;
+      height: 16px;
+      vertical-align: text-bottom;
+      margin-right: 6px;
+      stroke: currentColor;
+      fill: none;
+      opacity: 0.9;
+    }
+
     /* 仅在图片（figure） hover 时触发效果，而不是整个 album-box 区域 */
     .album-box figure:hover img {
       transform: scale(1.04) translateY(-6px);
@@ -352,15 +363,21 @@ Lazy Load Placeholder
                   <% if (imgIndex < 6) { %>
                   <a href="<%= cover %>" class="album-toggle" data-fancybox="<%= category.id %>_box">
                     <figure>
-                      <img data-src="<%= cover %>" class="lazyload img-fluid blur-up">
-                      <div class="album-hover-badge">组图 · <span class="album-count"><%= (image.images || []).length %></span> 张</div>
+                        <img data-src="<%= cover %>" class="lazyload img-fluid blur-up">
+                        <div class="album-hover-badge">组图 · <span class="album-count"><%= (image.images || []).length %></span> 张</div>
                     </figure>
                   </a>
                   <div class="title">
                     <span class="desc">
                       <%- image.description %>
                     </span>
-                    <small class="album-count-text ms-2 text-muted">组图 · <%= (image.images || []).length %> 张</small>
+                    <small class="album-count-text ms-2 text-muted">
+                      <svg class="album-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M3 7h14v12H3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M7 3h14v12H7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      组图 · <%= (image.images || []).length %> 张
+                    </small>
                     <button type="button" class="ms-2 album-action" style="vertical-align:middle;" aria-pressed="false" aria-label="展开/收起相册">
                       <svg class="arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -378,7 +395,13 @@ Lazy Load Placeholder
                     <span class="desc">
                       <%- image.description %>
                     </span>
-                    <small class="album-count-text ms-2 text-muted" style="display:none;">组图 · <%= (image.images || []).length %> 张</small>
+                    <small class="album-count-text ms-2 text-muted" style="display:none;">
+                      <svg class="album-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M3 7h14v12H3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M7 3h14v12H7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      组图 · <%= (image.images || []).length %> 张
+                    </small>
                     <button type="button" class="ms-2 album-action" style="vertical-align:middle;display:none;" aria-pressed="false" aria-label="展开/收起相册">
                       <svg class="arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
